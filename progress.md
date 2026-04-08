@@ -1,0 +1,67 @@
+# 📊 Progress — Журнал прогресса
+
+## Дата создания: 2026-04-06
+
+---
+
+## Запись #1 — Инициализация проекта
+- **Дата:** 2026-04-06
+- **Действие:** Инициализация файлов памяти проекта по протоколу B.L.A.S.T.
+- **Результат:** ✅ Созданы `task_plan.md`, `findings.md`, `progress.md`, `gemini.md`
+- **Ошибки:** Нет
+- **Следующий шаг:** Discovery-вопросы
+
+## Запись #2 — Discovery завершён
+- **Дата:** 2026-04-06
+- **Действие:** Получены ответы на 5 Discovery-вопросов. Определены North Star, интеграции, Source of Truth, Delivery Payload и поведенческие правила.
+- **Результат:** ✅ Data Schema определена в GEMINI.md (6 сущностей: Task, Project, Client, Portfolio Item, Daily Plan, Progress Report)
+- **Ошибки:** Нет
+
+## Запись #3 — Research завершён
+- **Дата:** 2026-04-06
+- **Действие:** Исследование ресурсов: архитектура n8n + Telegram + Supabase, SQL-схема БД, Python-клиент Supabase
+- **Результат:** ✅ Найдена оптимальная архитектура воркфлоуов, готовая SQL-схема, паттерны интеграции
+- **Ошибки:** Нет
+- **Следующий шаг:** Утверждение Blueprint пользователем
+
+## Запись #4 — Phase 2: Link завершена
+- **Дата:** 2026-04-06
+- **Действие:** Проверка всех MVP-интеграций через handshake-скрипты
+- **Результат:**
+  - ✅ Supabase — подключён (SERVICE_ROLE_KEY)
+  - ✅ Telegram Bot — @test84n8n_bot подключён
+  - ✅ LLM API (ProxyAPI) — подключён
+  - ✅ n8n — доступен (localhost:5678, /healthz OK)
+  - ⏭️ Google Sheets — пропущен (Этап 2)
+  - ⏭️ Notion — пропущен (Этап 2)
+- **Ошибки:** ProxyAPI — исправлен URL (/openai/v1/models)
+- **Следующий шаг:** Phase 3: Architect
+
+## Запись #5 — Phase 3: Architect (SOP + SQL Schema)
+- **Дата:** 2026-04-06
+- **Действие:** Создание SOP-файлов для MVP и проектирование SQL-схемы
+- **Результат:**
+  - ✅ 5 SOP-файлов в `architecture/`
+  - ✅ SQL-схема: 4 таблицы (users, tasks, daily_reports, activity_logs)
+  - ✅ Поток данных задокументирован
+- **Ошибки:** Нет
+- **Следующий шаг:** Утверждение SQL-схемы → создание tools/
+
+## Запись #6 — SQL Schema v2 утверждена
+- **Дата:** 2026-04-07
+- **Действие:** Ревизия SQL-схемы по feedback пользователя. Изменения: telegram_user_id (UNIQUE), task_date вместо date, cancelled вместо skipped, entity_type/entity_id в логах, CASCADE для FK, именованные constraints.
+- **Результат:** ✅ Schema v2 утверждена. Файл миграции: `architecture/001_mvp_schema.sql`
+- **Ошибки:** Нет
+- **Следующий шаг:** Применить миграцию + создать tools
+
+## Запись #7 — MVP Tools созданы
+- **Дата:** 2026-04-07
+- **Действие:** Создание 4-х MVP tools в порядке зависимостей
+- **Результат:**
+  - ✅ `tools/activity_logger.py` — log_action, log_error, get_recent_logs, fallback
+  - ✅ `tools/task_manager.py` — create_task, list_tasks, update_task_status, get_or_create_user
+  - ✅ `tools/daily_planner.py` — get_daily_plan, format_plan_message, send_daily_plan
+  - ✅ `tools/progress_tracker.py` — get_daily_stats, update_streak, send_evening_report
+  - ✅ `tools/run_migration.py` — применение SQL-миграций
+- **Ошибки:** Нет
+- **Следующий шаг:** Применить миграцию → запустить тесты tools
