@@ -104,24 +104,23 @@ def create_task(
             .select("id", count="exact") \
             .eq("user_id", user_id) \
             .eq("task_date", task_date) \
-            .in_("status", ["pending", "in_progress"]) \
             .execute()
 
-        active_count = existing.count if existing.count is not None else len(existing.data)
+        total_count = existing.count if existing.count is not None else len(existing.data)
 
-        if active_count >= MAX_TASKS_PER_DAY:
+        if total_count >= MAX_TASKS_PER_DAY:
             log_action(
                 action_type="task_limit_reached",
                 user_id=user_id,
-                payload={"task_date": task_date, "count": active_count},
+                payload={"task_date": task_date, "count": total_count},
                 status="warning",
             )
             return {
                 "ok": False,
                 "task": None,
-                "error": f"Лимит задач на {task_date} исчерпан "
-                         f"({active_count}/{MAX_TASKS_PER_DAY}). "
-                         f"Перенесите задачу на другой день.",
+                "error": f"На {task_date} уже создано "
+                         f"{total_count}/{MAX_TASKS_PER_DAY} задач. "
+                         f"Нельзя добавить новую задачу на этот день.",
             }
     except Exception as e:
         log_error("task_create_check_failed", str(e), user_id=user_id)
@@ -166,7 +165,13 @@ def list_tasks(
     status_filter: str = None,
 ) -> dict:
     """
-    Получить задачи пользователя, отсортированные по приоритету (high → medium → low).
+    Получить задачи пользователя в стабильном порядке.
+
+    Логика:
+    - порядок фиксированный
+    - статус не влияет на позицию в списке
+    - задачи не "прыгают" после done/cancelled
+    - сортировка: сначала по created_at, потом по id
 
     Returns:
         dict: {"ok": bool, "tasks": list, "count": int, "error": str|None}
@@ -177,21 +182,33 @@ def list_tasks(
 
     try:
         sb = get_supabase()
-        query = sb.table("tasks") \
-            .select("*") \
-            .eq("user_id", user_id) \
+
+        query = (
+            sb.table("tasks")
+            .select("*")
+            .eq("user_id", user_id)
             .eq("task_date", task_date)
+        )
 
         if status_filter:
             query = query.eq("status", status_filter)
 
-        result = query.execute()
+        # СТАБИЛЬНЫЙ порядок на стороне БД
+        result = (
+            query
+            .order("created_at", desc=False)
+            .order("id", desc=False)
+            .execute()
+        )
+
         tasks = result.data or []
 
-        # Единственная сортировка — в Python по приоритету
-        tasks.sort(key=lambda t: PRIORITY_ORDER.get(t.get("priority", "medium"), 1))
-
-        return {"ok": True, "tasks": tasks, "count": len(tasks), "error": None}
+        return {
+            "ok": True,
+            "tasks": tasks,
+            "count": len(tasks),
+            "error": None,
+        }
 
     except Exception as e:
         log_error("task_list_failed", str(e), user_id=user_id)
@@ -255,6 +272,19 @@ def update_task_status(
         old_task = check.data[0]
         old_status = old_task["status"]
 
+        if old_status == new_status:
+            if new_status == "done":
+                return {
+                    "ok": False,
+                    "task": old_task,
+                    "error": "Задача уже выполнена",
+                }
+            return {
+                "ok": False,
+                "task": old_task,
+                "error": f"Задача уже имеет статус '{new_status}'",
+            }
+
         # Формируем update
         update_data = {"status": new_status}
 
@@ -296,24 +326,38 @@ def update_task_status(
 def get_task_by_number(user_id: str, number: int, task_date: str = None) -> dict:
     """
     Получить задачу по номеру в списке (1-based).
-    Удобно для Telegram: /done 3 → задача №3.
+
+    Пример:
+        /done 3 -> берём 3-ю задачу из стабильного списка
 
     Returns:
         dict: {"ok": bool, "task": dict|None, "error": str|None}
     """
+    try:
+        number = int(number)
+    except (TypeError, ValueError):
+        return {"ok": False, "task": None, "error": "Номер задачи должен быть числом"}
+
+    if number < 1:
+        return {"ok": False, "task": None, "error": "Номер задачи должен быть больше 0"}
+
     result = list_tasks(user_id, task_date)
+
     if not result["ok"]:
         return {"ok": False, "task": None, "error": result["error"]}
 
     tasks = result["tasks"]
-    if number < 1 or number > len(tasks):
+
+    if number > len(tasks):
         return {
             "ok": False,
             "task": None,
             "error": f"Нет задачи с номером {number}. Всего задач: {len(tasks)}",
         }
 
-    return {"ok": True, "task": tasks[number - 1], "error": None}
+    task = tasks[number - 1]
+
+    return {"ok": True, "task": task, "error": None}
 
 
 # ==================
