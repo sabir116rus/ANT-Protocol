@@ -190,7 +190,6 @@ async def api_update_task_status(req: TaskStatusRequest):
     if not result["ok"]:
         return {"ok": False, "error": result["error"]}
 
-    status_label = {"done": "Vypolneno", "cancelled": "Otmeneno", "pending": "Vozvrascheno"}
     return {
         "ok": True,
         "action": "task_status_updated",

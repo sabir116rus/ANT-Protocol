@@ -1,6 +1,6 @@
 # 📋 Task Plan — B.L.A.S.T. Protocol
 
-## Статус проекта: 🟡 ФАЗА 2 — LINK (Проверка соединений)
+## Статус проекта: 🟡 ФАЗА 3 — ARCHITECT (Инструменты и интеграция)
 
 ---
 
@@ -74,21 +74,26 @@
 
 ---
 
-## Фаза 2: Link (Связность) — В ПРОЦЕССЕ
+## Фаза 2: Link (Связность) ✅
 - [x] Создать `.env.example` с описанием переменных
-- [ ] Создать `.env` с реальными ключами ← ⏳ ТЕКУЩИЙ ШАГ
-- [ ] Проверить Supabase подключение (MVP)
-- [ ] Проверить Telegram Bot API (MVP)
-- [ ] Проверить OpenAI API (MVP)
-- [ ] Проверить n8n доступность (MVP)
+- [x] Создать `.env` с реальными ключами
+- [x] Проверить Supabase подключение (MVP)
+- [x] Проверить Telegram Bot API (MVP)
+- [x] Проверить OpenAI API (MVP)
+- [x] Проверить n8n доступность (MVP)
 - [ ] Проверить Google Sheets API (Этап 2)
 - [ ] Проверить Notion API (Этап 2)
 - [x] Handshake-скрипты для каждого сервиса
 
-## Фаза 3: Architect (Архитектура A.N.T.) — TODO
-- [ ] SOPs для каждого модуля в `architecture/`
-- [ ] Python-инструменты в `tools/`
-- [ ] n8n workflows импортированы и настроены
+## Фаза 3: Architect (Архитектура A.N.T.) — В ПРОЦЕССЕ
+- [x] SOPs для каждого модуля в `architecture/`
+- [x] SQL-схема v2 утверждена и применена (`001_mvp_schema.sql`)
+- [x] Python-инструменты в `tools/` (activity_logger, task_manager, daily_planner, progress_tracker)
+- [x] Рефакторинг: db.py (singleton), constants.py, utils.py (валидация + форматирование)
+- [x] task_manager.py — стабильный порядок, лимит всех статусов, защита от дублей
+- [x] n8n подключён к Python backend
+- [ ] Тестирование tools через `--test` ← ⏳ ТЕКУЩИЙ ШАГ
+- [ ] n8n workflows финализированы и протестированы
 
 ## Фаза 4: Stylize (Стилизация) — TODO
 - [ ] Формат Telegram-сообщений (Markdown)

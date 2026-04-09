@@ -64,4 +64,25 @@
   - ✅ `tools/progress_tracker.py` — get_daily_stats, update_streak, send_evening_report
   - ✅ `tools/run_migration.py` — применение SQL-миграций
 - **Ошибки:** Нет
-- **Следующий шаг:** Применить миграцию → запустить тесты tools
+
+## Запись #8 — Рефакторинг инфраструктуры
+- **Дата:** 2026-04-08
+- **Действие:** Выделение общих модулей (db.py, constants.py, utils.py), исправление подключения к Supabase (Session pooler), добавление format_date_ru для UX
+- **Результат:**
+  - ✅ `db.py` — singleton Supabase-клиент с SERVICE_ROLE_KEY
+  - ✅ `constants.py` — все константы централизованы
+  - ✅ `utils.py` — валидация (title, date, priority, status, minutes, source) + форматирование
+  - ✅ Подключение к Supabase через Session pooler
+- **Ошибки:** Начальный URL использовал Transaction pooler — исправлено на Session pooler
+
+## Запись #9 — Интеграция n8n + хардинг task_manager
+- **Дата:** 2026-04-09
+- **Действие:** Подключение n8n к Python backend, тестирование нод, улучшение task_manager
+- **Результат:**
+  - ✅ n8n подключён к Supabase и Python tools
+  - ✅ task_manager: стабильный порядок задач (order by created_at, id)
+  - ✅ task_manager: лимит считает ВСЕ задачи (не только active)
+  - ✅ task_manager: защита от повторного статуса + валидация get_task_by_number
+  - ✅ Коммит: `37760b0` — «Stable task ordering, limit & validation fixes»
+- **Ошибки:** Нет
+- **Следующий шаг:** Тестирование tools (`--test`) → финализация n8n workflows
