@@ -1,0 +1,672 @@
+{
+  "name": "Antigravity MVP - Telegram Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "5b8fd8a6-2646-4840-afec-238cf7d95faa",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1088,
+        448
+      ],
+      "webhookId": "5357ca91-0962-4c51-ab9d-259470773e7b",
+      "credentials": {
+        "telegramApi": {
+          "id": "vi6PGkGX2NnGquOa",
+          "name": "@test84n8n_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse command and args from Telegram message\nconst text = ($input.first().json.message?.text || '').trim();\nconst parts = text.split(/\\s+/);\nconst command = (parts[0] || '').toLowerCase();\nconst args = parts.slice(1).join(' ');\n\nreturn [{\n  json: {\n    chat_id: $input.first().json.message?.chat?.id,\n    command: command,\n    args: args,\n    username: $input.first().json.message?.from?.username || '',\n    first_name: $input.first().json.message?.from?.first_name || ''\n  }\n}];"
+      },
+      "id": "690636b9-aab9-44b2-b9db-d4a2d9fbef9f",
+      "name": "Parse Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "auth-check",
+              "leftValue": "={{ String($json.chat_id) }}",
+              "rightValue": "={{ String($env.TELEGRAM_CHAT_ID) }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f44bba58-d92d-4c4b-b29c-ffd68939ff4e",
+      "name": "Auth Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "472b5600-cf50-4a91-882f-11d1e39c0c6e",
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "/add",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "2ce93628-a821-4103-b4c6-777b8cee4856",
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "/list",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "73b2d203-a4d0-48af-94b7-1c99fc56ec2b",
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "/done",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "d92a838e-9ec0-4ede-a1d7-ede3b777f062",
+      "name": "Command Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -416,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/api/tasks",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{  $env.API_SECRET_KEY  }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ telegram_chat_id: $json.chat_id, title: $json.args }) }}",
+        "options": {}
+      },
+      "id": "70f57a7c-7a15-4c3b-bbb9-919475ca68d2",
+      "name": "HTTP Add Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -112,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/api/tasks/list",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{  $env.API_SECRET_KEY  }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ telegram_chat_id: $('Parse Command').first().json.chat_id, task_date: $('Parse Command').first().json.args || null }) }}",
+        "options": {}
+      },
+      "id": "6fdffd58-412e-49c5-a6b5-79092b323861",
+      "name": "HTTP List Tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -112,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/api/tasks/status",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{  $env.API_SECRET_KEY  }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ telegram_chat_id: $('Parse Command').first().json.chat_id, task_number: parseInt($('Parse Command').first().json.args), new_status: 'done' }) }}\n",
+        "options": {}
+      },
+      "id": "153c6174-9fb1-4e5e-8ffc-7b7ac069dbf6",
+      "name": "HTTP Done Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -112,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nconst chatId = $('Parse Command').first().json.chat_id;\n\nfunction formatDate(dateStr) {\n  if (!dateStr) return 'без даты';\n\n  const parts = dateStr.split('-');\n  if (parts.length !== 3) return dateStr;\n\n  return `${parts[2]}.${parts[1]}.${parts[0]}`;\n}\n\nfunction formatDatesInText(text) {\n  if (!text) return 'Unknown error';\n\n  return text.replace(/\\b(\\d{4})-(\\d{2})-(\\d{2})\\b/g, '$3.$2.$1');\n}\n\nif (!resp.ok) {\n  const errorText = formatDatesInText(resp.error || 'Unknown error');\n\n  return [{\n    json: {\n      chat_id: chatId,\n      text: '❌ ' + errorText\n    }\n  }];\n}\n\nconst t = resp.task;\nconst priorityEmoji = { high: '🔴', medium: '🟡', low: '🟢' };\n\nconst fDateAdd = formatDate(t.task_date);\n\nconst text = `✅ Задача добавлена\n\n${priorityEmoji[t.priority] || '🟡'} ${t.title}\n📅 ${fDateAdd}\n⏱ ${t.estimated_minutes} мин`;\n\nreturn [{\n  json: {\n    chat_id: chatId,\n    text\n  }\n}];"
+      },
+      "id": "3acbd914-269c-4679-9da9-7757b160e062",
+      "name": "Format Add",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nconst chatId = $('Parse Command').first().json.chat_id;\n\nif (!resp.ok) {\n  return [{ json: { chat_id: chatId, text: '❌ ' + (resp.error || 'Unknown error') } }];\n}\n\nif (resp.count === 0) {\n  return [{ json: { chat_id: chatId, text: '📋 Задач на сегодня нет.\\nДобавьте через /add' } }];\n}\n\nconst statusIcon = { pending: '⬜', in_progress: '🔄', done: '✅', cancelled: '🚫' };\nconst priorityIcon = { high: '🔴', medium: '🟡', low: '🟢' };\n\nconst dList = resp.task_date ? resp.task_date.split('-') : [];\nconst fDateList = dList.length === 3 ? `${dList[2]}.${dList[1]}.${dList[0]}` : resp.task_date;\n\nlet lines = [`📋 Задачи на ${fDateList}\\n`];\n\nfor (const t of resp.tasks) {\n  lines.push(`${statusIcon[t.status] || '⬜'} ${t.number}. ${priorityIcon[t.priority] || '🟡'} ${t.title} (${t.estimated_minutes} мин)`);\n}\n\nlines.push(`\\n📊 Всего: ${resp.count}/7`);\n\nreturn [{ json: { chat_id: chatId, text: lines.join('\\n') } }];"
+      },
+      "id": "d958bc19-5508-46c4-af1b-fa7025c1d389",
+      "name": "Format List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json;\nconst chatId = $('Parse Command').first().json.chat_id;\n\nif (!resp.ok) {\n  return [{ json: { chat_id: chatId, text: '❌ ' + (resp.error || 'Unknown error') } }];\n}\n\nconst statusText = { done: '✅ Выполнено', cancelled: '🚫 Отменено', pending: '⬜ Возвращено' };\nconst label = statusText[resp.new_status] || '✅';\n\nconst text = `${label} ${resp.title}`;\n\nreturn [{ json: { chat_id: chatId, text: text } }];"
+      },
+      "id": "da68a635-aab3-4d37-a927-0f313dc1122d",
+      "name": "Format Done",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatId = $json.chat_id;\nconst text = '❓ Неизвестная команда.\\n\\nДоступные:\\n/add Название — добавить задачу\\n/list — список задач\\n/done N — выполнить задачу #N';\n\nreturn [{ json: { chat_id: chatId, text: text } }];"
+      },
+      "id": "9b96e4c2-3430-4f33-a83e-7f5d157da81b",
+      "name": "Format Help",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "args-not-empty",
+              "leftValue": "={{ $json.args }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9d186960-2b6b-415e-bea4-830469b6b8df",
+      "name": "Check Add Args",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatId = $('Parse Command').first().json.chat_id;\nreturn [{ json: { chat_id: chatId, text: '❌ После /add укажите название задачи' } }];"
+      },
+      "id": "6788c31c-2847-4939-a3e6-67bb206272e3",
+      "name": "Format Add Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ String($json.chat_id) }}",
+        "text": "Сначала купите ключ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        768
+      ],
+      "id": "dac141bf-40a5-4d7a-8153-1431847522a3",
+      "name": "Send a text message",
+      "webhookId": "40ec7be4-319b-4a47-b392-713055a465f2",
+      "credentials": {
+        "telegramApi": {
+          "id": "vi6PGkGX2NnGquOa",
+          "name": "@test84n8n_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        368,
+        496
+      ],
+      "id": "217f277f-09ca-4514-afa6-a72c197e7cff",
+      "name": "Send Response",
+      "webhookId": "44103399-51ff-4d25-98cd-5e66088eeb25",
+      "credentials": {
+        "telegramApi": {
+          "id": "vi6PGkGX2NnGquOa",
+          "name": "@test84n8n_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "args-not-empty",
+              "leftValue": "={{ $json.args }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "0536b1e9-8952-4737-9374-903f9bc06fda",
+              "leftValue": "={{ Number($json.args) }}",
+              "rightValue": 7,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            },
+            {
+              "id": "091eeafb-3ece-4411-9945-365ff8fae2b7",
+              "leftValue": "={{ Number($json.args) }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "519d0804-a864-466a-8769-f09d53a214e0",
+      "name": "Check Done Args",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatId = $('Parse Command').first().json.chat_id;\nreturn [{ json: { chat_id: chatId, text: '❌ После /done укажите номер задачи в пределах 7 задач в день' } }];"
+      },
+      "id": "ebc3dcf0-db59-472f-97e0-84e7dee5f69d",
+      "name": "Format Done Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        752
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Command": {
+      "main": [
+        [
+          {
+            "node": "Auth Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Check": {
+      "main": [
+        [
+          {
+            "node": "Command Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Command Router": {
+      "main": [
+        [
+          {
+            "node": "Check Add Args",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP List Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Done Args",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Help",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Add Task": {
+      "main": [
+        [
+          {
+            "node": "Format Add",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP List Tasks": {
+      "main": [
+        [
+          {
+            "node": "Format List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Done Task": {
+      "main": [
+        [
+          {
+            "node": "Format Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Add": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format List": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Done": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Help": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Add Args": {
+      "main": [
+        [
+          {
+            "node": "HTTP Add Task",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Add Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Add Error": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Done Args": {
+      "main": [
+        [
+          {
+            "node": "HTTP Done Task",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Done Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Done Error": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4a9729b7-5b88-40d7-95f2-5f67d8a2c45a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "633cfd418dcce03309facbc688d57dbe6250ae62a16133dfe99e4fb1b1ce9e2f"
+  },
+  "id": "ZUuUlG3ZOAAgrHb8",
+  "tags": []
+}

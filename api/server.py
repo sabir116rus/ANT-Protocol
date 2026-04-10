@@ -198,3 +198,18 @@ async def api_update_task_status(req: TaskStatusRequest):
         "task_id": task["id"],
         "new_status": req.new_status,
     }
+
+
+@app.post("/api/status", dependencies=[Depends(verify_api_key)])
+async def api_quick_stats(req: ListRequest):
+    """
+    Быстрая статистика дня.
+    n8n вызывает при команде /status.
+    """
+    user = _get_user(req.telegram_chat_id)
+    result = get_quick_stats(user["id"])
+
+    if not result["ok"]:
+        return {"ok": False, "error": result.get("error", "Ошибка статистики")}
+
+    return result

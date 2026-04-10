@@ -285,6 +285,14 @@ def update_task_status(
                 "error": f"Задача уже имеет статус '{new_status}'",
             }
 
+        # Нельзя отменить выполненную задачу
+        if old_status == "done" and new_status == "cancelled":
+            return {
+                "ok": False,
+                "task": old_task,
+                "error": "Нельзя отменить выполненную задачу",
+            }
+
         # Формируем update
         update_data = {"status": new_status}
 
