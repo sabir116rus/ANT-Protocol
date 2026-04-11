@@ -1,4 +1,4 @@
-# 📋 Task Plan — B.L.A.S.T. Protocol
+# 📋 Task Plan — A.N.T. Protocol
 
 ## Статус проекта: 🟢 ФАЗА 5 — TRIGGER (Деплой)
 
@@ -104,9 +104,9 @@
 - [ ] Шаблоны Notion-страниц (Этап 2)
 - [ ] Формат Google Sheets отчётов (Этап 2)
 
-## Фаза 5: Trigger (Деплой) — В ПРОЦЕССЕ
+## Фаза 5: Trigger (Деплой) ✅
 - [x] n8n workflows созданы и протестированы
 - [x] Cron-триггеры настроены (08:00 / 21:00 MSK)
-- [ ] Активировать все workflows ← ⏳ ТЕКУЩИЙ ШАГ
-- [ ] Документация в GEMINI.md
+- [x] Все workflows запущены и активны
+- [x] Документировано в README.md и GEMINI.md
 

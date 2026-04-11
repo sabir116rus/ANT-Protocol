@@ -1,5 +1,5 @@
 """
-Antigravity Skills — FastAPI Server (MVP)
+A.N.T. Protocol — FastAPI Server (MVP)
 
 Тонкий transport layer для вызова tools из n8n.
 Бизнес-логика остаётся в tools/*.py.
@@ -51,7 +51,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Antigravity Skills API",
+    title="A.N.T. Protocol API",
     version="0.1.0",
     description="MVP API для управления задачами через n8n + Telegram",
     lifespan=lifespan,
