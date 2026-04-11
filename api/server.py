@@ -213,3 +213,33 @@ async def api_quick_stats(req: ListRequest):
         return {"ok": False, "error": result.get("error", "Ошибка статистики")}
 
     return result
+
+
+@app.post("/api/plan", dependencies=[Depends(verify_api_key)])
+async def api_daily_plan(req: ListRequest):
+    """
+    Утренний план дня.
+    n8n Cron вызывает в 08:00. Сам отправляет в Telegram.
+    """
+    user = _get_user(req.telegram_chat_id)
+    result = send_daily_plan(
+        user_id=user["id"],
+        telegram_chat_id=req.telegram_chat_id,
+        task_date=req.task_date,
+    )
+    return result
+
+
+@app.post("/api/report", dependencies=[Depends(verify_api_key)])
+async def api_evening_report(req: ListRequest):
+    """
+    Вечерний отчёт.
+    n8n Cron вызывает в 21:00. Сам отправляет в Telegram.
+    """
+    user = _get_user(req.telegram_chat_id)
+    result = send_evening_report(
+        user_id=user["id"],
+        telegram_chat_id=req.telegram_chat_id,
+        task_date=req.task_date,
+    )
+    return result

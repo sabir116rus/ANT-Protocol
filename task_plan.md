@@ -1,6 +1,6 @@
 # 📋 Task Plan — B.L.A.S.T. Protocol
 
-## Статус проекта: 🟡 ФАЗА 3 — ARCHITECT (Инструменты и интеграция)
+## Статус проекта: 🟢 ФАЗА 5 — TRIGGER (Деплой)
 
 ---
 
@@ -85,23 +85,28 @@
 - [ ] Проверить Notion API (Этап 2)
 - [x] Handshake-скрипты для каждого сервиса
 
-## Фаза 3: Architect (Архитектура A.N.T.) — В ПРОЦЕССЕ
+## Фаза 3: Architect (Архитектура A.N.T.) ✅
 - [x] SOPs для каждого модуля в `architecture/`
 - [x] SQL-схема v2 утверждена и применена (`001_mvp_schema.sql`)
 - [x] Python-инструменты в `tools/` (activity_logger, task_manager, daily_planner, progress_tracker)
 - [x] Рефакторинг: db.py (singleton), constants.py, utils.py (валидация + форматирование)
 - [x] task_manager.py — стабильный порядок, лимит всех статусов, защита от дублей
 - [x] n8n подключён к Python backend
-- [ ] Тестирование tools через `--test` ← ⏳ ТЕКУЩИЙ ШАГ
-- [ ] n8n workflows финализированы и протестированы
+- [x] Telegram Bot workflow: /add, /list, /done, /cancel, /status, /start, /help
+- [x] API endpoints: tasks, tasks/list, tasks/status, status, plan, report
+- [x] Cron workflows: Daily Planner (08:00), Evening Report (21:00)
+- [x] Защита done→cancelled в task_manager
 
-## Фаза 4: Stylize (Стилизация) — TODO
-- [ ] Формат Telegram-сообщений (Markdown)
-- [ ] Шаблоны Notion-страниц
-- [ ] Формат Google Sheets отчётов
-- [ ] Обратная связь от пользователя
+## Фаза 4: Stylize (Стилизация) — ЧАСТИЧНО ✅
+- [x] Формат Telegram-сообщений (MarkdownV2 в plan/report, plain в bot)
+- [x] Даты в формате DD.MM.YYYY для пользователя
+- [x] Emoji-иконки статусов и приоритетов
+- [ ] Шаблоны Notion-страниц (Этап 2)
+- [ ] Формат Google Sheets отчётов (Этап 2)
 
-## Фаза 5: Trigger (Деплой) — TODO
-- [ ] n8n workflows активированы
-- [ ] Cron-триггеры настроены
+## Фаза 5: Trigger (Деплой) — В ПРОЦЕССЕ
+- [x] n8n workflows созданы и протестированы
+- [x] Cron-триггеры настроены (08:00 / 21:00 MSK)
+- [ ] Активировать все workflows ← ⏳ ТЕКУЩИЙ ШАГ
 - [ ] Документация в GEMINI.md
+

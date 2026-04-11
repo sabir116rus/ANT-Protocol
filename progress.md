@@ -85,4 +85,18 @@
   - ✅ task_manager: защита от повторного статуса + валидация get_task_by_number
   - ✅ Коммит: `37760b0` — «Stable task ordering, limit & validation fixes»
 - **Ошибки:** Нет
-- **Следующий шаг:** Тестирование tools (`--test`) → финализация n8n workflows
+
+## Запись #10 — Этап A + B: Полный MVP Telegram Bot
+- **Дата:** 2026-04-10
+- **Действие:** Добавление команд /status, /cancel, /start, /help + cron-workflows для утреннего плана и вечернего отчёта
+- **Результат:**
+  - ✅ API: `POST /api/status` — быстрая статистика дня
+  - ✅ API: `POST /api/plan` — утренний план (collect → format → save → Telegram)
+  - ✅ API: `POST /api/report` — вечерний отчёт (stats → streak → format → save → Telegram)
+  - ✅ n8n Telegram Bot: 7 команд (/add, /list, /done, /cancel, /status, /start, /help)
+  - ✅ n8n Cron: Daily Planner (08:00 MSK), Evening Report (21:00 MSK)
+  - ✅ Бизнес-правило: done→cancelled запрещено в task_manager
+  - ✅ Все n8n ключи через $env (API_SECRET_KEY, TELEGRAM_CHAT_ID, FASTAPI_URL)
+  - ✅ Workflow v2 сохранён в architecture/
+- **Ошибки:** URL опечатка в n8n (/api/status вместо /api/tasks/status) — найдено и исправлено
+- **Следующий шаг:** Активация workflows → первый боевой день
