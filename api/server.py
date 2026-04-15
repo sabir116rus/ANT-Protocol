@@ -12,6 +12,7 @@ from datetime import date
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
@@ -93,6 +94,33 @@ def _get_user(telegram_chat_id: int) -> dict:
         raise HTTPException(status_code=500, detail=f"Ошибка получения пользователя: {e}")
 
 
+def _mapped_error_response(result: dict) -> JSONResponse:
+    code = result.get("error_code") or "UNKNOWN_ERROR"
+    message = result.get("error") or "Unknown error"
+    status_map = {
+        "VALIDATION_ERROR": 422,
+        "TASK_LIMIT_REACHED": 409,
+        "TASK_NOT_FOUND": 404,
+        "TASK_ALREADY_DONE": 409,
+        "TASK_STATUS_UNCHANGED": 409,
+        "TASK_DONE_CANNOT_CANCEL": 409,
+        "DB_FUNCTION_MISSING": 503,
+        "DB_ERROR": 500,
+        "UNKNOWN_ERROR": 500,
+    }
+    status_code = status_map.get(code, 500)
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "ok": False,
+            "error": {
+                "code": code,
+                "message": message,
+            },
+        },
+    )
+
+
 # ==================
 # Endpoints
 # ==================
@@ -120,7 +148,7 @@ async def api_create_task(req: TaskCreateRequest):
     )
 
     if not result["ok"]:
-        return {"ok": False, "error": result["error"]}
+        return _mapped_error_response(result)
 
     task = result["task"]
     return {
@@ -148,7 +176,7 @@ async def api_list_tasks(req: ListRequest):
     result = list_tasks(user["id"], task_date)
 
     if not result["ok"]:
-        return {"ok": False, "error": result["error"]}
+        return _mapped_error_response(result)
 
     tasks = []
     for i, t in enumerate(result["tasks"], 1):
@@ -181,14 +209,14 @@ async def api_update_task_status(req: TaskStatusRequest):
     # Найти задачу по номеру
     found = get_task_by_number(user["id"], req.task_number, task_date)
     if not found["ok"]:
-        return {"ok": False, "error": found["error"]}
+        return _mapped_error_response(found)
 
     task = found["task"]
 
     # Обновить статус
     result = update_task_status(user["id"], task["id"], req.new_status)
     if not result["ok"]:
-        return {"ok": False, "error": result["error"]}
+        return _mapped_error_response(result)
 
     return {
         "ok": True,
