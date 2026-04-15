@@ -84,6 +84,7 @@
 - [ ] Проверить Google Sheets API (Этап 2)
 - [ ] Проверить Notion API (Этап 2)
 - [x] Handshake-скрипты для каждого сервиса
+- [x] Добавить env-поля для Google Sheets worksheet title
 
 ## Фаза 3: Architect (Архитектура A.N.T.) ✅
 - [x] SOPs для каждого модуля в `architecture/`
@@ -101,12 +102,23 @@
 - [x] Формат Telegram-сообщений (MarkdownV2 в plan/report, plain в bot)
 - [x] Даты в формате DD.MM.YYYY для пользователя
 - [x] Emoji-иконки статусов и приоритетов
-- [ ] Шаблоны Notion-страниц (Этап 2)
-- [ ] Формат Google Sheets отчётов (Этап 2)
+- [x] Базовый шаблон Notion-портфолио через API (`/api/portfolio/notion-template`)
+- [x] Базовый формат экспорта Google Sheets (`tools/google_sheets_reports.py`)
+
+## Фаза 6: Stage 2 Expansion — В ПРОЦЕССЕ
+- [x] Добавить deterministic tool для экспорта `daily_reports` в Google Sheets
+- [x] Встроить необязательный post-step экспорта Google Sheets в `progress_tracker.py`
+- [x] Добавить API endpoint `POST /api/report/export/google-sheets`
+- [x] Добавить deterministic tool для шаблона портфолио в Notion
+- [x] Добавить API endpoint `POST /api/portfolio/notion-template`
+- [x] Подключить реальную запись в Notion Database
+- [x] Добавить API endpoint `POST /api/portfolio/notion-page`
+- [x] Добавить weekly/monthly exports в Google Sheets
+- [x] Добавить API endpoints `POST /api/report/export/google-sheets/weekly` и `POST /api/report/export/google-sheets/monthly`
+- [x] Интегрировать stage 2 flows в `evening_report_workflow.json`
 
 ## Фаза 5: Trigger (Деплой) ✅
 - [x] n8n workflows созданы и протестированы
 - [x] Cron-триггеры настроены (08:00 / 21:00 MSK)
 - [x] Все workflows запущены и активны
 - [x] Документировано в README.md и GEMINI.md
-

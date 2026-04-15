@@ -24,6 +24,12 @@ from tools.task_manager import create_task, list_tasks, update_task_status, get_
 from tools.daily_planner import send_daily_plan
 from tools.progress_tracker import send_evening_report, get_quick_stats
 from tools.activity_logger import log_action
+from tools.google_sheets_reports import (
+    export_daily_report_to_google_sheets,
+    export_weekly_report_to_google_sheets,
+    export_monthly_report_to_google_sheets,
+)
+from tools.notion_portfolio import build_portfolio_template, create_notion_portfolio_page
 
 
 # ==================
@@ -80,6 +86,28 @@ class TaskStatusRequest(BaseModel):
 class ListRequest(BaseModel):
     telegram_chat_id: int
     task_date: str | None = None
+
+
+class ReportExportRequest(ListRequest):
+    report_type: str = Field("evening_report", description="Тип отчёта для экспорта")
+
+
+class PeriodExportRequest(ListRequest):
+    anchor_date: str | None = Field(None, description="Любая дата внутри нужной недели или месяца")
+
+
+class NotionTemplateRequest(BaseModel):
+    title: str = Field(..., min_length=3, description="Название кейса или проекта")
+    description: str = Field(..., min_length=10, description="Краткое описание результата")
+    category: str = Field("other", description="Категория кейса")
+    technologies: list[str] = Field(default_factory=list, description="Список технологий")
+    result_url: str | None = Field(None, description="Ссылка на результат")
+    source: str = Field("manual", description="Источник записи")
+    status: str = Field("draft", description="Статус шаблона")
+
+
+class NotionCreateRequest(NotionTemplateRequest):
+    database_id: str | None = Field(None, description="Notion database ID; если не задан, берется из env")
 
 
 # ==================
@@ -271,3 +299,75 @@ async def api_evening_report(req: ListRequest):
         task_date=req.task_date,
     )
     return result
+
+
+@app.post("/api/report/export/google-sheets", dependencies=[Depends(verify_api_key)])
+async def api_export_report_to_google_sheets(req: ReportExportRequest):
+    """
+    Экспорт сохранённого daily_report в Google Sheets.
+    Используется как отдельный step этапа 2.
+    """
+    user = _get_user(req.telegram_chat_id)
+    result = export_daily_report_to_google_sheets(
+        user_id=user["id"],
+        report_date=req.task_date,
+        report_type=req.report_type,
+    )
+    return result
+
+
+@app.post("/api/report/export/google-sheets/weekly", dependencies=[Depends(verify_api_key)])
+async def api_export_weekly_report_to_google_sheets(req: PeriodExportRequest):
+    """
+    Экспорт недельной сводки в Google Sheets на основе daily_reports.
+    """
+    user = _get_user(req.telegram_chat_id)
+    return export_weekly_report_to_google_sheets(
+        user_id=user["id"],
+        anchor_date=req.anchor_date or req.task_date,
+    )
+
+
+@app.post("/api/report/export/google-sheets/monthly", dependencies=[Depends(verify_api_key)])
+async def api_export_monthly_report_to_google_sheets(req: PeriodExportRequest):
+    """
+    Экспорт месячной сводки в Google Sheets на основе daily_reports.
+    """
+    user = _get_user(req.telegram_chat_id)
+    return export_monthly_report_to_google_sheets(
+        user_id=user["id"],
+        anchor_date=req.anchor_date or req.task_date,
+    )
+
+
+@app.post("/api/portfolio/notion-template", dependencies=[Depends(verify_api_key)])
+async def api_build_notion_template(req: NotionTemplateRequest):
+    """
+    Построить детерминированный шаблон записи портфолио для Notion.
+    """
+    return build_portfolio_template(
+        title=req.title,
+        description=req.description,
+        category=req.category,
+        technologies=req.technologies,
+        result_url=req.result_url,
+        source=req.source,
+        status=req.status,
+    )
+
+
+@app.post("/api/portfolio/notion-page", dependencies=[Depends(verify_api_key)])
+async def api_create_notion_page(req: NotionCreateRequest):
+    """
+    Создать страницу в Notion database по мягкому schema-mapping.
+    """
+    return create_notion_portfolio_page(
+        title=req.title,
+        description=req.description,
+        category=req.category,
+        technologies=req.technologies,
+        result_url=req.result_url,
+        source=req.source,
+        status=req.status,
+        database_id=req.database_id,
+    )

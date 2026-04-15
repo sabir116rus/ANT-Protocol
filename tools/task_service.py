@@ -8,6 +8,7 @@ from tools.constants import (
     DEFAULT_PRIORITY,
     DEFAULT_ESTIMATED_MINUTES,
     DEFAULT_SOURCE,
+    ACTUAL_MAX,
 )
 from tools.utils import (
     validate_title,
@@ -190,9 +191,11 @@ def update_task_status_service(
         if new_status == "done":
             update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
             if actual_minutes is not None:
-                update_data["actual_minutes"] = max(0, min(480, int(actual_minutes)))
+                update_data["actual_minutes"] = max(0, min(ACTUAL_MAX, int(actual_minutes)))
         else:
             update_data["completed_at"] = None
+            # Если задача больше не done, фактическое время не должно учитываться в отчётах.
+            update_data["actual_minutes"] = None
 
         task = repo.update_task(task_id=task_id, update_data=update_data)
         if not task:
@@ -209,4 +212,3 @@ def update_task_status_service(
     except Exception as e:
         log_error("task_status_update_failed", str(e), user_id=user_id, entity_type="task", entity_id=task_id)
         return {"ok": False, "task": None, "error_code": "DB_ERROR", "error": str(e)}
-

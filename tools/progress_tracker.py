@@ -20,6 +20,7 @@ from tools.utils import escape_markdown, format_minutes, validate_date, format_d
 from tools.activity_logger import log_action, log_error
 from tools.task_manager import list_tasks
 from tools.daily_planner import send_telegram_message
+from tools.google_sheets_reports import export_daily_report_to_google_sheets
 
 
 def get_daily_stats(user_id: str, task_date: str = None) -> dict:
@@ -283,10 +284,11 @@ def send_evening_report(
         dict: {
             "report_calculated": bool,
             "report_saved": bool,
-            "telegram_sent": bool,
-            "stats": dict|None,
-            "streak_days": int,
-            "message_id": int|None,
+        "telegram_sent": bool,
+        "google_sheets_status": str,
+        "stats": dict|None,
+        "streak_days": int,
+        "message_id": int|None,
             "errors": list[str],
         }
     """
@@ -296,6 +298,7 @@ def send_evening_report(
         "report_calculated": False,
         "report_saved": False,
         "telegram_sent": False,
+        "google_sheets_status": "not_attempted",
         "stats": None,
         "streak_days": 0,
         "message_id": None,
@@ -329,6 +332,11 @@ def send_evening_report(
     result["report_saved"] = save_result["ok"]
     if not save_result["ok"]:
         result["errors"].append(f"Сохранение: {save_result.get('error')}")
+    else:
+        sheets_result = export_daily_report_to_google_sheets(user_id, task_date, "evening_report")
+        result["google_sheets_status"] = sheets_result.get("status", "error")
+        if not sheets_result["ok"]:
+            result["errors"].append(f"Google Sheets: {sheets_result.get('error')}")
 
     # 5. Отправить
     send_result = send_telegram_message(telegram_chat_id, message)
@@ -351,6 +359,7 @@ def send_evening_report(
             "report_calculated": result["report_calculated"],
             "report_saved": result["report_saved"],
             "telegram_sent": result["telegram_sent"],
+            "google_sheets_status": result["google_sheets_status"],
         },
         status="success" if result["telegram_sent"] else "warning",
     )
