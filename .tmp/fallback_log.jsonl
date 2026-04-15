@@ -1,1 +1,0 @@
-{"action_type": "system_test", "payload": {"test": true, "timestamp": "2026-04-07T11:42:17.610657+00:00"}, "status": "success", "_original_error": "{'message': \"Could not find the table 'public.activity_logs' in the schema cache\", 'code': 'PGRST205', 'hint': None, 'details': None}", "_fallback": true, "_fallback_at": "2026-04-07T11:42:20.956849+00:00"}
